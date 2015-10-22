@@ -34,7 +34,7 @@ int somme(vector<vector<int>> v, int j)
 	}
 	return result;
 }
-vector<int> ajout(instance inst, vector<int> v,int j)
+vector<int> ajoutg(instance inst, vector<int> v,int j)
 {
 	vector<int> w=v;
 	w[0]=1;
@@ -49,7 +49,20 @@ vector<int> ajout(instance inst, vector<int> v,int j)
 	}
 	return w;
 }
-
+vector<int> ajout(instance inst, vector<int> v, int j, int signe)
+{
+	vector<int> w = v;
+	w[0] = 1;
+	for (int i = 0; i < w.size() - 1; i++)
+	{
+		w[i + 1] = w[i + 1] - signe*inst.a[i][j];
+		if (w[i + 1] < 0)
+		{
+			w[0] = 0;
+		}
+	}
+	return w;
+}
 solution glouton(instance inst)
 {
 	//classement des projets par prix: c(j)/ somme(a(i,j), i entre 1 et M
@@ -77,7 +90,7 @@ solution glouton(instance inst)
 	sol.valeur = 0;
 	while (prix.size()>0)
 	{
-		reste = ajout(inst, reste, prix.back().getname());
+		reste = ajoutg(inst, reste, prix.back().getname());
 		if (reste[0]==1)
 		{
 			sol.projets.at(prix.back().getname()) = 1;
@@ -104,18 +117,11 @@ solution monteeV1(instance inst, solution init)
 	solution sol;//solution courante
 	solution sol_prime;
 	int valeur_prime;
-	bool realisable;
 	bool end = false;
+	int ajout_j;
 	int compteur = 0;
 	//on verifie que la solution est réalisable, sinon on lui assigne la valeur 0
-	realisable = true;
-	for (int i = 0; i < inst.b.size(); i++)
-	{
-		if (sol_max.reste[i] < 0)
-			realisable = false;
-	}
-	if (!realisable)
-		sol_max.valeur = 0;
+	
 	while (!end)
 	{
 		end = true;
@@ -126,19 +132,17 @@ solution monteeV1(instance inst, solution init)
 		{
 			sol_prime = sol;
 			sol_prime.projets[j] = sol.projets[j] + 1;
+			ajout_j = 1;
 			if (sol_prime.projets[j] == 2)
+			{
 				sol_prime.projets[j] = 0;
+				ajout_j = -1;
+			}
 			valeur_prime=evaluer(inst, sol_prime);
+			sol_prime.reste = ajout(inst, sol_prime.reste, j, ajout_j);
 			if (valeur_prime > sol.valeur)//cela veut forcementdire qu'on a ajouté le projet j
 			{
-				realisable = true;
-				for (int i = 0; i < inst.b.size(); i++)
-				{
-					sol_prime.reste[i] = sol_prime.reste[i] - inst.a[i][j];
-					if (sol_prime.reste[i] < 0)
-						realisable = false;
-				}
-				if (realisable)
+				if (sol_prime.reste[0]==1)
 				{
 					end = false;
 					sol_prime.valeur = valeur_prime;
@@ -152,6 +156,7 @@ solution monteeV1(instance inst, solution init)
 		if (compteur > 100)
 			end = true;
 	}
+	
 	return sol_max;
 }
 solution monteeV2(instance inst, solution init)
@@ -160,20 +165,11 @@ solution monteeV2(instance inst, solution init)
 	solution sol;//solution courante
 	solution sol_prime;
 	int valeur_prime;
-	bool realisable;
 	bool end = false;
 	int compteur = 0;
 	signed int ajout_j;
 	signed int ajout_k;
-	//on verifie que la solution est réalisable, sinon on lui assigne la valeur 0
-	realisable = true;
-	for (int i = 0; i < inst.b.size(); i++)
-	{
-		if (sol_max.reste[i] < 0)
-			realisable = false;
-	}
-	if (!realisable)
-		sol_max.valeur = 0;
+	
 	while (!end)
 	{
 		end = true;
@@ -182,16 +178,18 @@ solution monteeV2(instance inst, solution init)
 		//pour chaque solution de ce voisinage on évalue la valeur et on la compare à la valeur de la solution maximale
 		for (int j = 0; j < sol.projets.size(); j++)
 		{
-			sol_prime = sol;
-			sol_prime.projets[j] = sol.projets[j] + 1;
-			ajout_j = 1;
-			if (sol_prime.projets[j] == 2)
-			{
-				sol_prime.projets[j] = 0;
-				ajout_j = -1;
-			}
+			
+			
 			for (int k = j + 1; k < sol.projets.size(); k++)
 			{
+				sol_prime = sol;
+				sol_prime.projets[j] = sol.projets[j] + 1;
+				ajout_j = 1;
+				if (sol_prime.projets[j] == 2)
+				{
+					sol_prime.projets[j] = 0;
+					ajout_j = -1;
+				}
 				sol_prime.projets[k] = sol.projets[k] + 1;
 				ajout_k = 1;
 				if (sol_prime.projets[k] == 2)
@@ -200,16 +198,12 @@ solution monteeV2(instance inst, solution init)
 					ajout_k = -1;
 				}
 				valeur_prime = evaluer(inst, sol_prime);
+				sol_prime.reste = ajout(inst, sol_prime.reste, j, ajout_j);
+				sol_prime.reste = ajout(inst, sol_prime.reste, k, ajout_k);
 				if (valeur_prime > sol.valeur)
 				{
-					realisable = true;
-					for (int i = 0; i < inst.b.size(); i++)
-					{
-						sol_prime.reste[i] = sol_prime.reste[i] - ajout_j * inst.a[i][j] - ajout_k*inst.a[i][k];
-						if (sol_prime.reste[i] < 0)
-							realisable = false;
-					}
-					if (realisable)
+					
+					if (sol_prime.reste[0]==1)
 					{
 						end = false;
 						sol_prime.valeur = valeur_prime;
@@ -221,11 +215,13 @@ solution monteeV2(instance inst, solution init)
 			}
 			//Si on trouve un meilleure solution on recommence
 			//sinon on s'arrête
+
 		}
 		compteur++;
 		if (compteur > 100)
 			end = true;
 	}
+	
 	return sol_max;
 }
 solution pertubationV1(instance inst, solution sol)
@@ -238,9 +234,13 @@ solution pertubationV1(instance inst, solution sol)
 		sol.projets[j] = 0;
 		ajout_j = -1;
 	}
+	sol.valeur = evaluer(inst, sol);
+	sol.reste[0] = 1;
 	for (int i = 0; i < inst.b.size(); i++)
 	{
-		sol.reste[i] = sol.reste[i] - ajout_j * inst.a[i][j];
+		sol.reste[i+1] = sol.reste[i+1] - ajout_j * inst.a[i][j];
+		if (sol.reste[i + 1] < 0)
+			sol.reste[0] = 0;
 	}
 	return sol;
 }
@@ -253,22 +253,28 @@ solution pertubationV2(instance inst, solution sol)
 	else if (k==j && k==0)
 		k++;
 	sol.projets[j] = sol.projets[j] + 1;
-	signed int ajout_j = 1;
+	 int ajout_j = 1;
 	if (sol.projets[j] == 2)
 	{
 		sol.projets[j] = 0;
 		ajout_j = -1;
 	}
 	sol.projets[k] = sol.projets[k] + 1;
-	signed int ajout_k = 1;
+	int ajout_k = 1;
 	if (sol.projets[k] == 2)
 	{
 		sol.projets[k] = 0;
 		ajout_k = -1;
 	}
+	sol.valeur=evaluer(inst, sol);
+	sol.reste[0] = 1;
 	for (int i = 0; i < inst.b.size(); i++)
 	{
-		sol.reste[i] = sol.reste[i] - ajout_j * inst.a[i][j] - ajout_k * inst.a[i][k];
+		sol.reste[i+1] = sol.reste[i+1] - ajout_j * inst.a[i][j] - ajout_k * inst.a[i][k];
+		if (sol.reste[i + 1] < 0)
+		{
+			sol.reste[0] = 0;
+		}
 	}
 	return sol;
 }
@@ -281,7 +287,7 @@ solution heuristique(instance inst, solution init)
 	solution sol_max = init;
 	solution sol_un;
 	solution sol_deux;
-	while (compteur < 1000)
+	while (compteur < 100)
 	{
 		k = 1;
 		while (k != kmax && compteur<1000)
@@ -300,18 +306,21 @@ solution heuristique(instance inst, solution init)
 				sol_deux = monteeV2(inst, sol_un);
 				compteur++;
 			}
-			valeur = evaluer(inst, sol_deux);
+			//valeur = evaluer(inst, sol_deux);
 			
 			//si on arrive à une meilleure solution on se déplace et on recommence à k=1
-			if (valeur > sol_max.valeur)
+			if (sol_deux.valeur > sol_max.valeur)
 			{
-				sol_max = sol_deux;
-				k = 1;
+				if (sol_deux.reste[0] == 1)
+				{
+					sol_max = sol_deux;
+					k = 1;
+				}
 
 			}
 			//sinon on passe à un voisinage plus grand
 			else
-				k = k++;
+				k++;
 		}
 		compteur++;
 
