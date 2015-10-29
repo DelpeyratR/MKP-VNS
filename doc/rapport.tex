@@ -1,0 +1,136 @@
+\documentclass[fleqn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{verbatim} 
+\usepackage{aeguill}
+\usepackage{amsfonts}
+\usepackage{xspace}
+\usepackage[fleqn]{amsmath} %pour aligner a gauche
+\usepackage{textcomp} 
+\usepackage{cancel} 
+\usepackage{mathcomp} 
+\usepackage{makeidx}
+\usepackage{lscape} % pour avoir une page en paysage
+\usepackage{acronym}
+\usepackage{picins}
+\usepackage{fancybox}
+\usepackage{shapepar}	% pour les mises en forme de texte (losange etc)
+\usepackage{fancyhdr}
+\usepackage{textcomp}  % pour les caractères spéciaux (copyleft etc)
+\usepackage{marvosym} % autres caractères (eletrostatic, laser)
+\usepackage{supertabular}% tableaux sur plusieurs pages
+\usepackage{ifsym} % caractères spéciaux
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{upgreek}
+\usepackage{picins}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{eurosym}
+% Permet d'inserer des graphiques
+\usepackage{graphicx,graphics}
+\usepackage{graphicx}
+
+\usepackage{amsfonts, amssymb, amsthm, amsmath}
+\usepackage{dsfont}
+\usepackage{float}
+\usepackage[french]{babel}
+\usepackage[a4paper]{geometry}
+\geometry{hscale=0.85,vscale=0.85,centering}
+\usepackage{epstopdf}
+\usepackage{epsfig}
+% Title Page
+\title{Projet Métaheuristique : \\Application de la VNS au problème de sac-à-dos multidimensionnel}
+\author{Roxane \textsc{Delepeyrat}, Le Thanh Dung \textsc{Nguyen} }
+\lstset{numbers=left}
+
+\begin{document}
+\maketitle
+\renewcommand{\contentsname}{Sommaire}
+\tableofcontents
+\newpage
+\section*{Introduction}
+Nous avons travaillé sur le problème du sac-à-dos multidimensionnel en  appliquant un métaheuristique de recherche à voisinages variables (VNS). 
+\section{Description du problème de sac-à-dos multidimensionnel}
+Ce problème modélise un problème d'allocation de ressources. On se donne:
+\begin{itemize}
+\item $N$ projets et $M$ ressources
+\item $b_{i}$ la quantité de ressource $i$ disponible ($i=1,\ldots,M$)
+\item $c_{j}$ le profit associé au projet $j$ ($j=1,\ldots,N$)
+\item $a_{i,j}$, la quantité de ressource $i$ nécessaire à la réalisation du projet $j$ ($i=1,\ldots,M$ et $j=1,\ldots,N$)
+\end{itemize}
+Le problème consiste à sélectionner un sous-ensemble des projets maximisant le gain total dans la limite des ressources disponibles. Il peut être modélisé de cette manière:
+\begin{align}
+ min &f(x) =\sum_{j=1}^{N}c_{j}x{j}\\
+ s.c. & \sum_{j=1}^{N} a_{i,j}x_{j}\leq b{i} \quad i=1,\ldots,M\\
+& x_{j}\in {0,1}\\
+\end{align}
+
+avec $x_{j}=1$ si le projet est accepté.
+On suppose ici que:
+\begin{itemize}
+\item $c_{j}$ et $b_{i}$ sont des entiers positifs 
+\item $A^{j}=(a_{i,j})_{i=1,\ldots,M}$ est différent du vecteur nul $\forall j \in {1,\ldots,N}$.
+\end{itemize}
+
+\section{Description de la recherche à voisinages variables (VNS)}
+Le principe de la VNS est dépasser les optimaux locaux en changeant de voisinages. L'algorithme part d'une solution réalisable, crée une solution perturbée dans le voisinage de cette dernière puis effectue une recherche locale dans le voisinage de la solution perturbée. Si la solution trouvée par la recherche locale est meilleure que celles trouvées jusqu'à présent, alors l'algorithme change de voisinage et recommence. Si une solution est optimale pour tous les voisinages explorés par l'heuristique ou si le temps alloué est dépassé alors l'algorithme s'arrête et renvoie la meilleure solution réalisable rencontrée.
+Voici le pseudo-code décrivant la VNS:
+
+\begin{algorithmic}
+\STATE \{début\}
+\STATE $tps \gets 0$
+\STATE $x \gets x_0$
+\WHILE {$ tps \leq tps{max}$}
+\STATE $k \gets 1$
+\WHILE {$k \leq k_{max}$ }
+\STATE \{Étape de perturbation\}
+\STATE Générer une solution $x'$ aléatoirement dans le voisinage $V_{k}(x)$
+\STATE \{Étape de recherche locale\}
+\STATE Appliquer une heuristique de recherche locale à partir de $x'$
+\STATE Soit $x''$ la solution trouvée par la recherche locale.
+\STATE \{Étape de déplacement\}
+\IF{$f(x'')>f(x)$}
+\STATE $x \gets x''$
+\STATE $k \gets 1$
+\ELSE
+\STATE $k \gets k+1$
+\ENDIF
+\ENDWHILE
+\STATE $tps \gets Cputtime()$
+\ENDWHILE
+\STATE Retourner $x$
+\STATE \{Fin\}
+\end{algorithmic}
+Pour appliquer la VNS, il faut donc décider:
+\begin{itemize} 
+\item quels voisinages vont être utilisés pour générer une solution perturbée.
+\item quelle méthode de recherche locale utiliser pour chaque voisinage exploré
+\item quelle solution prendre comme solution de départ et comment la générer.
+\end{itemize}
+\section{Algorithme glouton pour générer une solution initiale}
+
+Pour générer une solution initiale, l'algorithme glouton s'inspire de celui pour le problème du sac-à-dos unidimensionnel. Les projets sont d'abord classés par "valeur", puis le sac-à-dos est rempli en commençant par les projets de plus grandes valeurs. 
+Ici, la valeur d'un projet est calculé de la manière suivante: $valeur_{j}=c_{j}/sum_{i=1,\cdots,M}a_{i,j}$.
+Voici le pseudo-code de l'algorithme glouton utilisé:
+\begin{algorithmic}
+\STATE Soit valeur le vecteur des valeurs
+\STATE La solution initiale n'accepte aucun projet
+\STATE Soit reste un vecteur de taille M tel que reste[i] soit égal à la quantité de ressource i restante après avoir accepter les projets de x
+\STATE	\{Classement des projets par valeur\}
+\FOR{$j=1,\cdot,N$} 
+\STATE $valeur[j]= \frac{c_{j}}{\sum_{i=1,\cdots,M} a_{i,j}}$
+\ENDFOR
+\STATE \{Remplissage du sac-à-dos\}
+\FOR {chaque projet de la valeur la plus éléveé à la valeur la plus faible}
+\IF {le projet peut être ajouté à la solution en respectant les contraintes}
+\STATE Ajouter le projet à la solution 
+\ENDIF
+\ENDFOR
+\STATE Retourner la solution
+\end{algorithmic}
+\section{Description des différents voisinages utilisés}
+\section{Description de différentes rechercheslocales utilisées}
+\section{Description des différents tests effectués}
+
+\end{document}

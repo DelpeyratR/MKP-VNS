@@ -1,0 +1,22 @@
+
+Plan
+
+test: 
+enregistrer le nombre de lancement de l'algo
+la valeur obtenue à chaque fois
+le temps de calcul à chaque fois
+le nombre de solutions optimales rencontrées (nb de fois ou on change sol_max
+nb de solutions evaluées (nb d'appel à la fonction evaluer)
+
+code:
+fct pour générer pertubations quelque soit le voisinage
+montée dans chaine d'éjection
+montée chaine d'éjection double
+heuristique de réparation
+
+on loggue le test qu'on a commencé et quand on a fini une idée des résultats
+
+lundi on décide d'un plan de présentation et on boucle le rapport
+mercredi on boucle la présentation et on répète un peu
+
+
