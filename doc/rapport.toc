@@ -3,5 +3,5 @@
 \contentsline {section}{\numberline {2}Description de la recherche \IeC {\`a} voisinages variables (VNS)}{2}
 \contentsline {section}{\numberline {3}Algorithme glouton pour g\IeC {\'e}n\IeC {\'e}rer une solution initiale}{3}
 \contentsline {section}{\numberline {4}Description des diff\IeC {\'e}rents voisinages utilis\IeC {\'e}s}{3}
-\contentsline {section}{\numberline {5}Description de diff\IeC {\'e}rentes rechercheslocales utilis\IeC {\'e}es}{3}
+\contentsline {section}{\numberline {5}Description de diff\IeC {\'e}rentes recherches locales utilis\IeC {\'e}es}{3}
 \contentsline {section}{\numberline {6}Description des diff\IeC {\'e}rents tests effectu\IeC {\'e}s}{3}

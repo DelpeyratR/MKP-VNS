@@ -75,8 +75,8 @@ On suppose ici que:
 
 \section{Description de la recherche à voisinages variables (VNS)}
 Le principe de la VNS est dépasser les optimaux locaux en changeant de voisinages. L'algorithme part d'une solution réalisable, crée une solution perturbée dans le voisinage de cette dernière puis effectue une recherche locale dans le voisinage de la solution perturbée. Si la solution trouvée par la recherche locale est meilleure que celles trouvées jusqu'à présent, alors l'algorithme change de voisinage et recommence. Si une solution est optimale pour tous les voisinages explorés par l'heuristique ou si le temps alloué est dépassé alors l'algorithme s'arrête et renvoie la meilleure solution réalisable rencontrée.
-Voici le pseudo-code décrivant la VNS:
-
+Voici le pseudo-code décrivant la VNS:\\
+\fbox{\begin{minipage}{\linewidth}
 \begin{algorithmic}
 \STATE \{début\}
 \STATE $tps \gets 0$
@@ -101,7 +101,7 @@ Voici le pseudo-code décrivant la VNS:
 \ENDWHILE
 \STATE Retourner $x$
 \STATE \{Fin\}
-\end{algorithmic}
+\end{algorithmic}\end{minipage}}
 Pour appliquer la VNS, il faut donc décider:
 \begin{itemize} 
 \item quels voisinages vont être utilisés pour générer une solution perturbée.
@@ -112,8 +112,8 @@ Pour appliquer la VNS, il faut donc décider:
 
 Pour générer une solution initiale, l'algorithme glouton s'inspire de celui pour le problème du sac-à-dos unidimensionnel. Les projets sont d'abord classés par "valeur", puis le sac-à-dos est rempli en commençant par les projets de plus grandes valeurs. 
 Ici, la valeur d'un projet est calculé de la manière suivante: $valeur_{j}=c_{j}/sum_{i=1,\cdots,M}a_{i,j}$.
-Voici le pseudo-code de l'algorithme glouton utilisé:
-\begin{algorithmic}
+Voici le pseudo-code de l'algorithme glouton utilisé:\\
+\fbox{\begin{minipage}{\linewidth}\begin{algorithmic}
 \STATE Soit valeur le vecteur des valeurs
 \STATE La solution initiale n'accepte aucun projet
 \STATE Soit reste un vecteur de taille M tel que reste[i] soit égal à la quantité de ressource i restante après avoir accepter les projets de x
@@ -127,10 +127,33 @@ Voici le pseudo-code de l'algorithme glouton utilisé:
 \STATE Ajouter le projet à la solution 
 \ENDIF
 \ENDFOR
-\STATE Retourner la solution
-\end{algorithmic}
+\STATE Retourner la solution.
+\end{algorithmic}\end{minipage}}
 \section{Description des différents voisinages utilisés}
-\section{Description de différentes rechercheslocales utilisées}
+L'heuristique utilise différents voisinages pour se déplacer dans l'univers de solutions. Les deux premiers voisinages choisis utilisent la distance de Hamming. 
+Si une solution du problème est modélisée par un vecteur binaire où la i-ème coordonnée vaut 1 si le projet est retenu et 0 sinon, alors, si $x$ est une solution du problème,le voisinage de distance 1 $V_{1}(x)$ est l'ensemble des vecteurs obtenus en complémentant un bit du vecteur $x$ et le voisinage de distance 2 est l'ensemble des vecteurs obtenus en complémentant deux bits du vecteur $x$. 
+Les deux voisinages sont donc inclus l'un dans l'autre et peuvent contenir des solutions irréalisables. 
+Chaines d'échanges?
+\section{Description de différentes recherches locales utilisées}
+L'heuristique utilise la distance de Hamming de 1 et de 2. Il a donc été logique d'implémenter comme algorithme de recherche locale des algorithmes de montée dans les voisinages descrits plus haut. 
+Voici le pseudo-code de l'algorithme de montée:\\
+\fbox{\begin{minipage}{\linewidth}\begin{algorithmic}
+%%\STATE \{début\}
+\STATE Soit $x$ une solution du problème admissible ou non. Si x n'est pas admissible alors sa valeur $f(x)$ vaut 0.
+\STATE $x_{max}\gets x$
+\FOR{chaque bit i de la solution}
+\STATE Générer $x'$ en complémentant le i-ème bit de $ x$.
+\STATE Evaluer si $x'$ est admissible ou non
+\IF{$x'$ est admissible}
+\STATE Evaluer la valeur de $x'$, $f(x')$
+\IF{$f(x')>f(x)$}
+\STATE $x_{max}\gets x'$
+\ENDIF
+\ENDIF
+\ENDFOR
+%%\STATE \{Fin\}
+\end{algorithmic}\end{minipage}
+}
 \section{Description des différents tests effectués}
-
+mama
 \end{document}
