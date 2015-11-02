@@ -20,6 +20,7 @@ struct instance
 struct solution
 {
 	int valeur;
+	int sols; //nb de solutions evaluées avant de parvenir à celle-ci
 	std::vector<int> projets;
 	std::vector<int> reste;
 	};
@@ -99,6 +100,7 @@ solution glouton(instance inst)
 		prix.pop_back();
 	}
 	sol.reste = reste;
+	sol.sols = 1;
 	return sol;
 }
 int evaluer(instance inst, solution sol)
@@ -119,7 +121,8 @@ solution monteeV1(instance inst, solution init)
 	int valeur_prime;
 	bool end = false;
 	int ajout_j;
-	int compteur = 0;
+	time_t tempsdeb = time(NULL);
+	time_t tempsfin=time(NULL);
 	//on verifie que la solution est réalisable, sinon on lui assigne la valeur 0
 	
 	while (!end)
@@ -130,6 +133,7 @@ solution monteeV1(instance inst, solution init)
 		//pour chaque solution de ce voisinage on évalue la valeur et on la compare à la valeur de la solution maximale
 		for (int j= 0; j < sol.projets.size(); j++)
 		{
+			sol.sols++;
 			sol_prime = sol;
 			sol_prime.projets[j] = sol.projets[j] + 1;
 			ajout_j = 1;
@@ -152,8 +156,8 @@ solution monteeV1(instance inst, solution init)
 			//Si on trouve un meilleure solution on recommence
 			//sinon on s'arrête
 		}
-		compteur++;
-		if (compteur > 100)
+		tempsfin = time(NULL);
+		if (difftime(tempsfin,tempsdeb) > 180)
 			end = true;
 	}
 	
@@ -166,7 +170,8 @@ solution monteeV2(instance inst, solution init)
 	solution sol_prime;
 	int valeur_prime;
 	bool end = false;
-	int compteur = 0;
+	time_t tempsdeb = time(NULL);
+	time_t tempsfin = time(NULL);
 	signed int ajout_j;
 	signed int ajout_k;
 	
@@ -182,6 +187,7 @@ solution monteeV2(instance inst, solution init)
 			
 			for (int k = j + 1; k < sol.projets.size(); k++)
 			{
+				sol.sols++;
 				sol_prime = sol;
 				sol_prime.projets[j] = sol.projets[j] + 1;
 				ajout_j = 1;
@@ -217,8 +223,8 @@ solution monteeV2(instance inst, solution init)
 			//sinon on s'arrête
 
 		}
-		compteur++;
-		if (compteur > 100)
+		tempsfin = time(NULL);
+		if (difftime(tempsfin,tempsdeb) > 180)
 			end = true;
 	}
 	
@@ -242,6 +248,7 @@ solution pertubationV1(instance inst, solution sol)
 		if (sol.reste[i + 1] < 0)
 			sol.reste[0] = 0;
 	}
+	sol.sols++;
 	return sol;
 }
 solution pertubationV2(instance inst, solution sol)
@@ -276,21 +283,23 @@ solution pertubationV2(instance inst, solution sol)
 			sol.reste[0] = 0;
 		}
 	}
+	sol.sols++;
 	return sol;
 }
 solution heuristique(instance inst, solution init)
 {
-	int compteur = 0;
+	time_t tempsdeb = time(NULL);
+	time_t tempsfin=time(NULL);
 	int k = 0;
 	int kmax = 3;
 	int valeur;
 	solution sol_max = init;
 	solution sol_un;
 	solution sol_deux;
-	while (compteur < 100)
+	while (difftime(tempsfin,tempsdeb)<360 )
 	{
 		k = 1;
-		while (k != kmax && compteur<1000)
+		while (k != kmax && difftime(tempsfin, tempsdeb)<360)
 		{
 			//on pertube la solution maximale
 			//on effectue une montée dans le k voisinage
@@ -298,13 +307,13 @@ solution heuristique(instance inst, solution init)
 			{
 				sol_un = pertubationV1(inst, sol_max);
 				sol_deux = monteeV1(inst, sol_un);
-				compteur++;
+				
 			}
 			else
 			{
 				sol_un = pertubationV2(inst, sol_max);
 				sol_deux = monteeV2(inst, sol_un);
-				compteur++;
+				
 			}
 			//valeur = evaluer(inst, sol_deux);
 			
@@ -319,23 +328,28 @@ solution heuristique(instance inst, solution init)
 
 			}
 			//sinon on passe à un voisinage plus grand
-			else
-				k++;
+			//
+			//else
+			//	k++;
+			tempsfin = time(NULL); 
 		}
-		compteur++;
+		
 
 	}
 	return sol_max;
 }
 int main(int argc, char** argv)
 {
-	ifstream fichier("mknap1.txt", ios::in);
+	ifstream fichier("mknapcb1.txt", ios::in);
+	ofstream sortie("test.txt", ios::out| ios::trunc);
+	time_t begin, end;
+	int k=0;
 	srand(time(NULL));
 	int nb_instances;
 
 		fichier >> nb_instances;
 	
-
+		cout << nb_instances << endl;
 std::vector<instance> instances(nb_instances);
     for (auto& inst : instances)
     {
@@ -361,31 +375,41 @@ std::vector<instance> instances(nb_instances);
 
     for (const auto& inst : instances)
     {
+		k++;
+		cout << k<< endl;
 		//appel de la fonction glouton pour produire une première solution admissible
 		solution sol= glouton(inst);
 		
-        std::cout << inst.nb_projects << " variables" << std::endl;
-        std::cout << inst.nb_resources << " constraints" << std::endl;
-		std::cout << "OPT = " << inst.optimal_value << endl;
-		cout<<"Valeur trouvee par glouton = "<<sol.valeur << std::endl << std::endl;
+        //sortie << inst.nb_projects << " variables" << std::endl;
+        //sortie << inst.nb_resources << " constraints" << std::endl;
+		//sortie << "OPT = " << inst.optimal_value << endl;
+		//sortie <<"Valeur trouvee par glouton = "<<sol.valeur << std::endl << std::endl;
+		sortie << inst.optimal_value << ";" << sol.valeur << ";";
 		//montée depuis la solution nulle avec un voisinage V(1)
 		//sol.valeur = 0;
 		//sol.projets.assign(sol.projets.size(), 0);
 		//sol.reste = inst.b;
 		//sol = monteeV1(inst, sol);
-		//cout << "Valeur trouvee après une montée simple = " << sol.valeur << endl;
+		//sortie << "Valeur trouvee après une montée simple = " << sol.valeur << endl;
 		//heuristique
+		begin = time(NULL);
 		sol = heuristique(inst, sol);
-		cout << "Valeur trouvee par heuristique = " << sol.valeur << endl;
-		for (int i = 0; i < sol.projets.size(); i++)
+		end = time(NULL);
+		//sortie << "Valeur trouvee par heuristique = " << sol.valeur << endl;
+		//sortie << "Temps d'exécution = " << difftime(begin,end) << endl;
+		//sortie << "Nombre de solutions rencontrées = " << sol.sols << endl;
+		sortie << sol.valeur << ";";
+		sortie << difftime(end,begin) << ";";
+		sortie << sol.sols << endl;
+		/*for (int i = 0; i < sol.projets.size(); i++)
 		{
-			std::cout << "Projet numero = " << i;
+			sortie << "Projet numero = " << i;
 			if (sol.projets[i] == 0)
-				cout << " rejete" << endl;
+				sortie << " rejete" << endl;
 			else
-				cout << " retenu" << endl;
-		}
-		cout << endl;
+				sortie << " retenu" << endl;
+		}*/
+		sortie << endl;
 
     }
 
